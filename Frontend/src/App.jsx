@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import './App.css'
 import { SAMPLE_QUESTIONS } from './constants'
 import AssistantMessage from './components/AssistantMessage'
-import { postChat, deleteSession } from './api'
+import { postChat, deleteSession, getSession } from './api'
 
 export default function App() {
   const [messages, setMessages] = useState([])
@@ -11,6 +11,19 @@ export default function App() {
   const [sessionId, setSessionId] = useState(null)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
+
+  useEffect(() => {
+    const savedSession = localStorage.getItem('bi_session_id')
+    if (!savedSession) return
+
+    getSession(savedSession)
+      .then(data => {
+        setSessionId(savedSession)
+        const restored = data.history.map(turn => ({ type: 'user', text: turn.question }))
+        setMessages(restored)
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -24,7 +37,10 @@ export default function App() {
 
     try {
       const data = await postChat(sessionId, question)
-      if (!sessionId) setSessionId(data.session_id)
+      if (!sessionId) {
+        setSessionId(data.session_id)
+        localStorage.setItem('bi_session_id', data.session_id)
+      }
       setMessages(prev => [...prev, { type: 'assistant', ...data }])
     } catch (err) {
       const msg = err.response?.data?.detail?.message
@@ -50,6 +66,7 @@ export default function App() {
     }
     setMessages([])
     setSessionId(null)
+    localStorage.removeItem('bi_session_id')
     setInput('')
   }
 
