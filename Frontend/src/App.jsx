@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import axios from 'axios'
 import './App.css'
-import { API_BASE, SAMPLE_QUESTIONS } from './constants'
+import { SAMPLE_QUESTIONS } from './constants'
 import AssistantMessage from './components/AssistantMessage'
+import { postChat, deleteSession } from './api'
 
 export default function App() {
   const [messages, setMessages] = useState([])
@@ -23,7 +23,7 @@ export default function App() {
     setLoading(true)
 
     try {
-      const { data } = await axios.post(`${API_BASE}/chat`, { session_id: sessionId, question })
+      const data = await postChat(sessionId, question)
       if (!sessionId) setSessionId(data.session_id)
       setMessages(prev => [...prev, { type: 'assistant', ...data }])
     } catch (err) {
@@ -46,7 +46,7 @@ export default function App() {
 
   const clearChat = async () => {
     if (sessionId) {
-      await axios.delete(`${API_BASE}/sessions/${sessionId}`).catch(() => {})
+      await deleteSession(sessionId)
     }
     setMessages([])
     setSessionId(null)
