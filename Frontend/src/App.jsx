@@ -19,10 +19,15 @@ export default function App() {
     getSession(savedSession)
       .then(data => {
         setSessionId(savedSession)
-        const restored = data.history.map(turn => ({ type: 'user', text: turn.question }))
+        const restored = data.history.flatMap(turn => [
+          { type: 'user', text: turn.question },
+          { type: 'assistant', ...turn.response },
+        ])
         setMessages(restored)
       })
-      .catch(() => {})
+      .catch(() => {
+        localStorage.removeItem('bi_session_id')
+      })
   }, [])
 
   useEffect(() => {
