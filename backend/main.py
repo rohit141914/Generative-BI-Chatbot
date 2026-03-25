@@ -5,13 +5,13 @@ load_dotenv()
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-
 from database import init_db, SCHEMA_FOR_LLM
 from session_store import get_history, add_turn, clear_session, session_exists
-from llm_caller import generate_and_execute_sql
+from llm.llm_caller import generate_and_execute_sql
 from sql_executor import SQLSafetyError
 from chart_renderer import render_chart
+from helpers import answer_text, suggestions
+from models import ChatRequest, ChatResponse
 
 app = FastAPI(title="BI Chatbot")
 
@@ -31,45 +31,7 @@ app.mount("/outputs", StaticFiles(directory=OUTPUT_DIR), name="outputs")
 def startup():
     init_db()
 
-class ChatRequest(BaseModel):
-    session_id: str | None = None
-    question: str
 
-class ChatResponse(BaseModel):
-    session_id: str
-    question: str
-    sql_generated: str
-    chart_type: str
-    chart_url: str
-    table_data: list[dict]
-    answer_text: str
-    follow_up_suggestions: list[str]
-
-def _answer_text(rows):
-    if not rows:
-        return "No results found."
-    cols = list(rows[0].keys())
-    label_col = cols[0]
-    value_col = cols[1] if len(cols) > 1 else None
-    if value_col:
-        top = rows[0]
-        try:
-            val = f"{float(top[value_col]):,.2f}"
-        except:
-            val = str(top[value_col])
-        return f"{top[label_col]} has the highest {value_col} ({val}) across {len(rows)} result(s)."
-    return f"Query returned {len(rows)} result(s)."
-
-def _suggestions(question):
-    q = question.lower()
-    tips = []
-    if "state" in q:
-        tips.append("Break this down by product type")
-    if "trend" not in q:
-        tips.append("Show the monthly trend for 2024")
-    if "npa" not in q:
-        tips.append("Filter for NPA loans only")
-    return tips[:3]
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
@@ -83,15 +45,15 @@ async def chat(req: ChatRequest):
         raise HTTPException(status_code=500, detail={"error": "llm_error", "message": str(e)})
 
     chart_type, chart_url = render_chart(rows, session_id)
-    answer_text = _answer_text(rows)
-    follow_up_suggestions = _suggestions(req.question)
+    ans_text = answer_text(rows)
+    follow_up_suggestions = suggestions(req.question)
 
     add_turn(session_id, req.question, sql, {
         "sql_generated": sql,
         "chart_type": chart_type,
         "chart_url": chart_url,
         "table_data": rows[:100],
-        "answer_text": answer_text,
+        "answer_text": ans_text,
         "follow_up_suggestions": follow_up_suggestions,
     })
 
@@ -102,7 +64,7 @@ async def chat(req: ChatRequest):
         chart_type=chart_type,
         chart_url=chart_url,
         table_data=rows[:100],
-        answer_text=answer_text,
+        answer_text=ans_text,
         follow_up_suggestions=follow_up_suggestions,
     )
 
