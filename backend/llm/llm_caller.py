@@ -1,6 +1,6 @@
 import os, re
 import anthropic
-from prompt_builder import build_system_prompt, build_user_message
+from .prompt_builder import build_system_prompt, build_user_message
 from sql_executor import execute_sql, SQLSafetyError
 
 MAX_RETRIES = 2
