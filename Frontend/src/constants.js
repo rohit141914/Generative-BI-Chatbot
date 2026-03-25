@@ -1,4 +1,4 @@
-export const API_BASE = ''  // empty string because Vite proxy handles it
+export const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
 
 export const SAMPLE_QUESTIONS = [
   'Total disbursement by product type',
