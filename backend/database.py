@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS borrowers (
 );
 """
 
-SCHEMA_FOR_LLM = """
+DB_SCHEMA = """
 Table: loans
   loan_id        TEXT PRIMARY KEY
   borrower_id    TEXT

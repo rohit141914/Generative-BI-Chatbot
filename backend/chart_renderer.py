@@ -14,7 +14,7 @@ def _detect_chart_type(columns, rows):
         return "bar"
     if DATE_COL_RE.search(columns[0]):
         return "line"
-    if len(columns) == 2 and len(rows) <= 8:
+    if len(columns) == 2 and len(rows) <= 4:
         return "pie"
     return "bar"
 
@@ -37,21 +37,24 @@ def render_chart(rows, session_id, chart_type=None):
     label_col = columns[0]
     value_col = columns[1]
     labels = [str(r[label_col]) for r in rows]
-    values = [r[value_col] for r in rows]
-    detected = chart_type or _detect_chart_type(columns, rows)
+    try:
+        values = [float(r[value_col]) if r[value_col] is not None else 0.0 for r in rows]
+    except (ValueError, TypeError):
+        return "none", ""
+    chart_type =_detect_chart_type(columns, rows)
 
     COLORS = ["#4A7FD4","#E87C45","#52A77A","#C95FAB","#D4A843","#6A6AD4","#D45A5A","#5AB8D4"]
     _apply_style()
     fig, ax = plt.subplots(figsize=(9, 5))
 
-    if detected == "line":
+    if chart_type == "line":
         ax.plot(labels, values, marker="o", color="#4A7FD4", linewidth=2, markersize=5)
         ax.fill_between(range(len(labels)), values, alpha=0.12, color="#4A7FD4")
         ax.set_xlabel(label_col)
         ax.tick_params(axis="x", rotation=45)
         ax.grid(axis="y", linestyle="--", alpha=0.6)
         ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f"{x:,.0f}"))
-    elif detected == "pie":
+    elif chart_type == "pie":
         ax.pie(values, labels=labels, colors=COLORS[:len(labels)],
                autopct="%1.1f%%", startangle=140)
         ax.axis("equal")
@@ -70,4 +73,4 @@ def render_chart(rows, session_id, chart_type=None):
     filename = f"chart_{session_id}_{uuid.uuid4().hex[:6]}.png"
     fig.savefig(os.path.join(OUTPUT_DIR, filename), dpi=120, bbox_inches="tight")
     plt.close(fig)
-    return detected, f"/outputs/{filename}"
+    return chart_type, f"/outputs/{filename}"

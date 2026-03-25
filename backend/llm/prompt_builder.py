@@ -1,4 +1,4 @@
-from database import SCHEMA_FOR_LLM
+from database import DB_SCHEMA
 
 SYSTEM_PROMPT_TEMPLATE = """You are a SQL query generator for a financial NBFC database.
 Output ONLY valid SQLite SQL. No explanations, no markdown fences, no comments.
@@ -20,7 +20,7 @@ def build_system_prompt(prior_turns):
     else:
         prior_context = ""
     return SYSTEM_PROMPT_TEMPLATE.format(
-        schema=SCHEMA_FOR_LLM.strip(),
+        schema=DB_SCHEMA.strip(),
         prior_context=prior_context,
     ).strip()
 
