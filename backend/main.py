@@ -5,7 +5,7 @@ load_dotenv()
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from database import init_db, SCHEMA_FOR_LLM
+from database import init_db, DB_SCHEMA
 from session_store import get_history, add_turn, clear_session, session_exists
 from llm.llm_caller import generate_and_execute_sql
 from sql_executor import SQLSafetyError
@@ -83,7 +83,7 @@ async def delete_session(session_id: str):
 
 @app.get("/schema")
 async def get_schema():
-    return {"schema": SCHEMA_FOR_LLM}
+    return {"schema": DB_SCHEMA}
 
 @app.get("/health")
 async def health():
