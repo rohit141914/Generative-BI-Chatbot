@@ -9,7 +9,7 @@ export default function DataTable({ rows }) {
         </thead>
         <tbody>
           {rows.slice(0, 20).map((row, i) => (
-            <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
+            <tr key={i} style={{ background: i % 2 === 0 ? '#0d1117' : '#161b22' }}>
               {cols.map(c => (
                 <td key={c} className="td">
                   {typeof row[c] === 'number'
@@ -22,7 +22,7 @@ export default function DataTable({ rows }) {
         </tbody>
       </table>
       {rows.length > 20 && (
-        <div style={{ fontSize: 12, color: '#999', marginTop: 6, paddingLeft: 4 }}>
+        <div style={{ fontSize: 12, color: '#6e7681', marginTop: 6, paddingLeft: 4 }}>
           Showing 20 of {rows.length} rows
         </div>
       )}

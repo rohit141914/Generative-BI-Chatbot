@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 export default function SqlBlock({ sql }) {
-  const [show, setShow] = useState(false)
+  const [show, setShow] = useState(true)
   return (
     <div>
       <button className="sql-toggle" onClick={() => setShow(v => !v)}>

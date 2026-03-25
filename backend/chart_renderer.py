@@ -20,10 +20,10 @@ def _detect_chart_type(columns, rows):
 
 def _apply_style():
     plt.rcParams.update({
-        "figure.facecolor": "#ffffff", "axes.facecolor": "#f8f8f8",
-        "axes.edgecolor": "#cccccc", "axes.labelcolor": "#333333",
-        "text.color": "#333333", "xtick.color": "#555555",
-        "ytick.color": "#555555", "grid.color": "#e0e0e0",
+        "figure.facecolor": "#0d1117", "axes.facecolor": "#161b22",
+        "axes.edgecolor": "#30363d", "axes.labelcolor": "#c9d1d9",
+        "text.color": "#c9d1d9", "xtick.color": "#8b949e",
+        "ytick.color": "#8b949e", "grid.color": "#21262d",
         "font.size": 11,
     })
 
@@ -66,7 +66,7 @@ def render_chart(rows, session_id, chart_type=None):
         ax.grid(axis="y", linestyle="--", alpha=0.6)
         for bar, val in zip(bars, values):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height()*1.01,
-                    f"{val:,.0f}", ha="center", va="bottom", fontsize=9)
+                    f"{val:,.0f}", ha="center", va="bottom", fontsize=9, color="#c9d1d9")
 
     ax.set_title(f"{value_col} by {label_col}", pad=12, fontsize=13)
     fig.tight_layout()
