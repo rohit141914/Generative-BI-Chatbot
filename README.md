@@ -33,6 +33,7 @@ A full-stack business intelligence assistant that lets you query a loan portfoli
 | Database  | SQLite                        |
 | AI        | Anthropic Claude (Haiku)      |
 | Charts    | Matplotlib                    |
+| Server    | nginx (static files + API proxy)      |
 | Deploy    | Vercel (frontend), Render (backend) |
 
 ---
@@ -66,9 +67,11 @@ chat/
 │   │       ├── AssistantMessage.jsx
 │   │       ├── DataTable.jsx
 │   │       └── SqlBlock.jsx
+│   ├── nginx.conf           # Serves static files + proxies API to backend
 │   ├── vercel.json
 │   └── Dockerfile
-└── docker-compose.yml
+├── docker-compose.yml
+└── README.md
 ```
 
 ---
@@ -124,8 +127,10 @@ Frontend runs at `http://localhost:5173` — Vite proxies API calls to the backe
 docker compose up --build
 ```
 
-- Frontend → `http://localhost`
+- Frontend → `http://localhost` (served by nginx)
 - Backend → `http://localhost:8000`
+
+nginx serves the React build as static files and proxies all API routes (`/chat`, `/sessions`, `/schema`, `/outputs`, `/health`) to the FastAPI backend container. This replaces the Vite dev proxy used in local development.
 
 ---
 
