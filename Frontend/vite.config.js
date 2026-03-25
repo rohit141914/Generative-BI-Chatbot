@@ -5,11 +5,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/chat': 'http://localhost:8000',
-      '/sessions': 'http://localhost:8000',
-      '/schema': 'http://localhost:8000',
-      '/outputs': 'http://localhost:8000',
-      '/health': 'http://localhost:8000',
+      '/chat': 'https://generative-bi-chatbot.onrender.com',
+      '/sessions': 'https://generative-bi-chatbot.onrender.com',
+      '/schema': 'https://generative-bi-chatbot.onrender.com',
+      '/outputs': 'https://generative-bi-chatbot.onrender.com',
+      '/health': 'https://generative-bi-chatbot.onrender.com',
     }
   }
 })
