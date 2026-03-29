@@ -34,6 +34,13 @@ CREATE TABLE IF NOT EXISTS borrowers (
     city_tier   INTEGER,
     state       TEXT
 );
+CREATE TABLE IF NOT EXISTS query_logs (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id    TEXT,
+    question      TEXT,
+    sql_generated TEXT,
+    created_at    TEXT DEFAULT (datetime('now'))
+);
 """
 
 DB_SCHEMA = """
@@ -76,5 +83,14 @@ def get_connection():
 def init_db():
     conn = get_connection()
     conn.executescript(SCHEMA_DDL)
+    conn.commit()
+    conn.close()
+
+def save_query_log(session_id: str, question: str, sql_generated: str):
+    conn = get_connection()
+    conn.execute(
+        "INSERT INTO query_logs (session_id, question, sql_generated) VALUES (?, ?, ?)",
+        (session_id, question, sql_generated),
+    )
     conn.commit()
     conn.close()

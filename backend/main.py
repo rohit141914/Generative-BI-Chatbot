@@ -5,7 +5,7 @@ load_dotenv()
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from database import init_db, DB_SCHEMA
+from database import init_db, DB_SCHEMA, save_query_log
 from session_store import get_history, add_turn, clear_session, session_exists
 from llm.llm_caller import generate_and_execute_sql
 from sql_executor import SQLSafetyError
@@ -44,6 +44,7 @@ async def chat(req: ChatRequest):
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail={"error": "llm_error", "message": str(e)})
 
+    save_query_log(session_id, req.question, sql)
     chart_type, chart_url = render_chart(rows, session_id)
     ans_text = answer_text(rows)
     follow_up_suggestions = suggestions(req.question)
