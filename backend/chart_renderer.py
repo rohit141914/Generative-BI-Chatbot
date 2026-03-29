@@ -12,8 +12,9 @@ DATE_COL_RE = re.compile(r"(date|month|year|period|week|quarter)", re.IGNORECASE
 
 COLORS = ["#4A7FD4","#E87C45","#52A77A","#C95FAB","#D4A843","#6A6AD4","#D45A5A","#5AB8D4"]
 
-def _detect_chart_type(columns, rows):
-    num_value_cols = len(columns) - 1
+def _detect_chart_type(columns, rows, num_value_cols=None):
+    if num_value_cols is None:
+        num_value_cols = len(columns) - 1
     has_date = DATE_COL_RE.search(columns[0])
 
     if num_value_cols >= 2 and has_date:
@@ -44,6 +45,17 @@ def _safe_floats(rows, col):
             out.append(0.0)
     return out
 
+def _is_numeric_col(rows, col):
+    """Return True if at least one non-null value in the column can be cast to float."""
+    for r in rows:
+        if r[col] is not None:
+            try:
+                float(r[col])
+                return True
+            except (ValueError, TypeError):
+                return False
+    return False
+
 def render_chart(rows, session_id, chart_type=None):
     if not rows:
         return "none", ""
@@ -52,10 +64,13 @@ def render_chart(rows, session_id, chart_type=None):
         return "none", ""
 
     label_col = columns[0]
-    value_cols = columns[1:]
+    # only keep columns whose values are actually numeric
+    value_cols = [c for c in columns[1:] if _is_numeric_col(rows, c)]
+    if not value_cols:
+        return "none", ""
     labels = [str(r[label_col]) for r in rows]
 
-    chart_type = _detect_chart_type(columns, rows)
+    chart_type = _detect_chart_type(columns, rows, num_value_cols=len(value_cols))
     print(f"chart{chart_type}")
 
     _apply_style()

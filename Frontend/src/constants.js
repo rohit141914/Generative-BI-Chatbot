@@ -7,6 +7,6 @@ export const SAMPLE_QUESTIONS = [
   'NPA rate (%) by branch',
   'Avg interest rate: gold vs personal',
   'Show NPA loans by state as a bar chart',
-  'Compare monthly disbursement for personal vs business loans',
-  'Loan count and total amount by product type',
+  'Compare monthly disbursement for personal vs business loans for march 2024 to june 2024',
+  'Loan count and total amount by product type for march 2024 to june 2024',
 ]
