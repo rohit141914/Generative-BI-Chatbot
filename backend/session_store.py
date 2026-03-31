@@ -1,16 +1,23 @@
 import json
+from contextlib import contextmanager
 from database import get_connection
+from queries import GET_HISTORY, INSERT_TURN, DELETE_SESSION, SESSION_EXISTS
 
 MAX_CONTEXT_TURNS = 5
 
-def get_history(session_id):
+@contextmanager
+def db_conn(commit=False):
     conn = get_connection()
-    rows = conn.execute(
-        "SELECT question, sql, response FROM chat_history "
-        "WHERE session_id = ? ORDER BY id DESC LIMIT ?",
-        (session_id, MAX_CONTEXT_TURNS),
-    ).fetchall()
-    conn.close()
+    try:
+        yield conn
+        if commit:
+            conn.commit()
+    finally:
+        conn.close()
+
+def get_history(session_id):
+    with db_conn() as conn:
+        rows = conn.execute(GET_HISTORY, (session_id, MAX_CONTEXT_TURNS)).fetchall()
     result = []
     for r in reversed(rows):
         entry = dict(r)
@@ -19,24 +26,16 @@ def get_history(session_id):
     return result
 
 def add_turn(session_id, question, sql, response):
-    conn = get_connection()
-    conn.execute(
-        "INSERT INTO chat_history (session_id, question, sql, response) VALUES (?, ?, ?, ?)",
-        (session_id, question, sql, json.dumps(response) if isinstance(response, (dict, list)) else response),
-    )
-    conn.commit()
-    conn.close()
+    with db_conn(commit=True) as conn:
+        conn.execute(
+            INSERT_TURN,
+            (session_id, question, sql, json.dumps(response) if isinstance(response, (dict, list)) else response),
+        )
 
 def clear_session(session_id):
-    conn = get_connection()
-    conn.execute("DELETE FROM chat_history WHERE session_id = ?", (session_id,))
-    conn.commit()
-    conn.close()
+    with db_conn(commit=True) as conn:
+        conn.execute(DELETE_SESSION, (session_id,))
 
 def session_exists(session_id):
-    conn = get_connection()
-    row = conn.execute(
-        "SELECT 1 FROM chat_history WHERE session_id = ? LIMIT 1", (session_id,)
-    ).fetchone()
-    conn.close()
-    return row is not None
+    with db_conn() as conn:
+        return conn.execute(SESSION_EXISTS, (session_id,)).fetchone() is not None
